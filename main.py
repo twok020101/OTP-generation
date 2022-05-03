@@ -1,14 +1,17 @@
-from mimetypes import init
+#............Imports....................#
 from random import randint
 import requests
 import mysql.connector
 from dotenv import load_dotenv
 import os
 
+#.......Load env file for security.............#
 load_dotenv('.env')
 
-print(os.environ.get("passoword"))
 
+"""
+Global variables and MySql Database connection.
+"""
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -19,15 +22,28 @@ mycursor = mydb.cursor()
 token = os.environ.get("token")
 endpoint = os.environ.get("endpoint")
 
+
+"""
+One time password generator class
+:return: 4 digit number
+"""
 class OneTimePasswordGenerator:
     def generator(self):
         return randint(1000,10000)
 
+"""
+Database Management Class
+Handles the customers in mysql database
+:param name: Name of the customer
+:param number: Phone number of the customer
+:returns: status of the verification and alloted otp
+"""
 class DatabaseManagement:
     def __init__(self,name,number) -> None:
         self.name=name
         self.number=number
     
+    #Insert a new user into database and assign 
     def insert(self):
         otp=OneTimePasswordGenerator.generator(self)
         sql="insert into customers (name,phone_number,otp,verify_status) values (%s,%s,%s,%s)"
@@ -62,7 +78,12 @@ class DatabaseManagement:
             else:
                 return True,otp
 
-
+"""
+WATI API management class
+Handles the requests to add and send otp to new customers.
+:param number: Phone number of the new customer
+:returns: status of the addtion of customer to contact list or status of sending of otp 
+"""
 class ApiManagement:
     def __init__(self,number) -> None:
         self.url = "https://"+endpoint+"/api/v1/"
@@ -96,6 +117,11 @@ class ApiManagement:
         response = requests.post(url, json=payload, headers=headers)
         print(response.text)
     
+"""
+Handling each customer as a an object.
+Inputs name and number of the customer and handles database management and api calling.
+:return: status of verification of otp of new customer.
+"""  
 class Customer:
     def __init__(self) -> None:
         self.name=input("Enter your name: ")
@@ -124,6 +150,8 @@ class Customer:
             self.databaseobj.modifyStatus()
             print("Verified")
 
+
+#Main function
 if __name__=="__main__":
     x=Customer()
     x.addIntoDb()
