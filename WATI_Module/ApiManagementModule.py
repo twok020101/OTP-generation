@@ -34,6 +34,12 @@ class ApiManagement:
         response = requests.post(url, json=payload, headers=headers)
         return response
 
-def main(number,otp):
+
+def sender(number,otp):
     cust=ApiManagement(number,otp)
     return (cust.sendOTP()).text
+
+def receiveOtp(originalOtp,receivedOtp):
+        if str(originalOtp)==str(receivedOtp):
+            return True
+        return False
